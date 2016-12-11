@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 2016-9-7 14:16:35 by Hibernate Tools 3.4.0.CR1 -->
+<hibernate-mapping package="com.atguigu.survey.entities.manager">
+    <class name="Auth" table="SURVEY_AUTH">
+        <id name="authId" type="java.lang.Integer">
+            <column name="AUTH_ID" />
+            <generator class="native" />
+        </id>
+        <property name="authName" type="java.lang.String">
+            <column name="AUTH_NAME" />
+        </property>
+        
+        <set name="resSet" table="INNER_AUTH_RES">
+        	<key column="AUTH_ID"/>
+        	<many-to-many class="Res" column="RES_ID"/>
+        </set>
+        
+    </class>
+</hibernate-mapping>

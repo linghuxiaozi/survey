@@ -1,0 +1,168 @@
+package com.atguigu.survey.component.handler.guest;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Set;
+
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.atguigu.survey.component.service.i.SurveyService;
+import com.atguigu.survey.e.FileTooLargeException;
+import com.atguigu.survey.e.FileTypeInvalidException;
+import com.atguigu.survey.entities.guest.Survey;
+import com.atguigu.survey.entities.guest.User;
+import com.atguigu.survey.utils.DataprocessUtils;
+import com.atguigu.survey.utils.GlobalNames;
+
+@Controller
+public class SurveyHandler {
+	
+	@Autowired
+	private SurveyService surveyService;
+	
+	@RequestMapping("/guest/survey/saveSurvey")
+	public String saveSurvey(
+			Survey survey, 
+			@RequestParam("logoFile") MultipartFile logoFile,
+			HttpSession session) throws IOException {
+		
+		//1.如果上传了文件，则压缩图片文件，并为Survey对象设置logoPath
+		//①判断上传的文件是否为空
+		if(!logoFile.isEmpty()) {
+			
+			//※文件验证
+			//i.检查文件大小
+			long size = logoFile.getSize();
+			if(size > 100*1024) {
+				throw new FileTooLargeException("您上传的文件太大了！请不要超过100K");
+			}
+			
+			//ii.检查文件类型
+			String contentType = logoFile.getContentType();
+			
+			if(!GlobalNames.ALLOWED_TYPES.contains(contentType)) {
+				throw new FileTypeInvalidException("请上传图片！");
+			}
+			
+			//②获取上传文件对应的输入流对象
+			InputStream inputStream = logoFile.getInputStream();
+			
+			//③声明surveyLogos目录的虚拟路径
+			String virtualPath = "/surveyLogos";
+			
+			//④将虚拟路径转换为服务器端部署目录下真实的物理路径
+			//[1]获取ServletContext对象
+			ServletContext servletContext = session.getServletContext();
+			//[2]执行转换
+			String realPath = servletContext.getRealPath(virtualPath);
+			
+			//⑤执行压缩图片操作，以返回值作为logoPath的值
+			String logoPath = DataprocessUtils.resizeImages(inputStream, realPath);
+			
+			//⑥为Survey对象的logoPath属性赋值
+			//这个设置的操作是在if块中，保证了用户上传文件时使用真实文件路径覆盖默认值，
+			//如果没有上传文件则保持默认值
+			survey.setLogoPath(logoPath);
+			
+		}
+		
+		//2.不管有没有上传文件都需要设置User
+		//①获取当前登录的User对象
+		User user = (User) session.getAttribute(GlobalNames.LOGIN_USER);
+		
+		//②给Survey对象设置User
+		survey.setUser(user);
+		
+		//3.保存Survey对象到数据库中
+		surveyService.writeSaveEntity(survey);
+		
+		return "redirect:/index.jsp";
+	}
+	
+	public String resizeImage(
+			Survey survey, 
+			@RequestParam("logoFile") MultipartFile logoFile,
+			HttpSession session) throws IOException {
+		
+		if(!logoFile.isEmpty()) {
+			
+			InputStream inputStream = logoFile.getInputStream();
+			
+			String virtualPath = "/surveyLogos";
+			
+			ServletContext servletContext = session.getServletContext();
+			
+			String realPath = servletContext.getRealPath(virtualPath);
+			
+			String logoPath = DataprocessUtils.resizeImages(inputStream, realPath);
+			
+			System.out.println(logoPath);
+		}
+		
+		return "redirect:/index.jsp";
+	}
+	
+	public String realPath(
+			Survey survey, 
+			@RequestParam("logoFile") MultipartFile logoFile,
+			HttpSession session) throws IllegalStateException, IOException {
+		
+		//1.获取ServletContext对象
+		ServletContext servletContext = session.getServletContext();
+		
+		//2.虚拟路径
+		String virtualPath = "/surveyLogos/happy.gif";
+		
+		//3.转换为真实路径
+		String realPath = servletContext.getRealPath(virtualPath);
+		System.out.println(realPath);
+		
+		//4.将文件写入到真实路径对应的文件中
+		File dest = new File(realPath);
+		logoFile.transferTo(dest);
+		
+		return "redirect:/index.jsp";
+	}
+	
+	public String showInformation(
+			Survey survey, 
+			@RequestParam("logoFile") MultipartFile logoFile) throws IOException {
+		
+		//尝试获取表单提交的数据
+		System.out.println("surveyName="+survey.getSurveyName());
+		
+		String contentType = logoFile.getContentType();
+		System.out.println("上传文件的内容类型="+contentType);
+		
+		InputStream inputStream = logoFile.getInputStream();
+		System.out.println("上传文件的输入流="+inputStream);
+		
+		String fieldName = logoFile.getName();
+		System.out.println("表单提交数据时，文件上传框的name属性值="+fieldName);
+		
+		String filename = logoFile.getOriginalFilename();
+		System.out.println("浏览器上传的文件的原始文件名="+filename);
+		
+		long size = logoFile.getSize();
+		System.out.println("上传文件的大小="+size);
+		
+		boolean empty = logoFile.isEmpty();
+		System.out.println("上传的文件是否为空="+empty);
+		
+		return "redirect:/index.jsp";
+	}
+	
+	@RequestMapping("/guest/survey/toAddUI")
+	public String toAddUI() {
+		return "/guest/survey_addUI";
+	}
+
+}

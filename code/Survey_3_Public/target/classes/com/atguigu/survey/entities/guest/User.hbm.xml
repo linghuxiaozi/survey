@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 2016-8-30 15:27:50 by Hibernate Tools 3.4.0.CR1 -->
+<hibernate-mapping>
+    <class name="com.atguigu.survey.entities.guest.User" table="SURVEY_USER">
+        <id name="userId" type="java.lang.Integer">
+            <column name="USER_ID" />
+            <generator class="native" />
+        </id>
+        <property name="userName" type="java.lang.String">
+            <column name="USER_NAME" />
+        </property>
+        <property name="userPwd" type="java.lang.String">
+            <column name="USER_PWD" />
+        </property>
+        <property name="company" type="java.lang.Boolean">
+            <column name="COMPANY" />
+        </property>
+        <property name="codeArrStr" type="string" column="CODE_ARR" />
+        <set name="roleSet" table="INNER_USER_ROLE">
+			<key column="USER_ID" />
+			<many-to-many 
+				column="ROLE_ID" 
+				class="com.atguigu.survey.entities.manager.Role" />
+			<!-- 这里User和Role不在同一个包下，所以无法提取package -->
+		</set>
+    </class>
+</hibernate-mapping>

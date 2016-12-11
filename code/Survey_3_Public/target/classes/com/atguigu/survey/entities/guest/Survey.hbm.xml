@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 2016-8-31 14:22:08 by Hibernate Tools 3.4.0.CR1 -->
+<hibernate-mapping package="com.atguigu.survey.entities.guest">
+    <class name="Survey" table="SURVEY_SURVEY">
+        <id name="surveyId" type="java.lang.Integer">
+            <column name="SURVEY_ID" />
+            <generator class="native" />
+        </id>
+        <property name="surveyName" type="java.lang.String">
+            <column name="SURVEY_NAME" />
+        </property>
+        <property name="logoPath" type="java.lang.String">
+            <column name="LOGO_PATH" />
+        </property>
+        <property name="completed" type="boolean">
+            <column name="COMPLETED" />
+        </property>
+        
+        <!-- 映射多对一关联关系 -->
+        <!-- name属性：Survey类中用来和User类关联的属性名 -->
+        <!-- class属性：User全类名，如果已经在hibernate-mapping标签中提取了包名，则使用简单类名 -->
+        <!-- column属性：SURVEY_SURVEY表中用来维护关联关系的外键列的列名 -->
+        <many-to-one name="user" class="User" column="USER_ID"/>
+        
+        <!-- table属性：维护关联关系的表名 -->
+        <set name="bagSet" 
+        	 table="SURVEY_BAG" 
+        	 inverse="true"
+        	 lazy="false"
+        	 fetch="join"
+        	 order-by="bagOrder"
+        	 cascade="delete">
+        	<!-- 外键列的列名 -->
+        	<key column="survey_id"/>
+        	<one-to-many class="Bag"/>
+        </set>
+        
+    </class>
+</hibernate-mapping>
